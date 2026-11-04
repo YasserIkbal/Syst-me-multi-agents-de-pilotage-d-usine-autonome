@@ -1,0 +1,16 @@
+# ── Serveur API ────────────────────────────────────────────────────────────────
+fastapi>=0.115,<0.116
+uvicorn>=0.30,<0.31
+pydantic>=2.9,<3
+httpx>=0.27,<0.28
+
+# ── Machine Learning ───────────────────────────────────────────────────────────
+scikit-learn>=1.5,<1.6
+joblib>=1.4,<2
+numpy>=1.26,<2          # NumPy 1.x requis par scikit-learn 1.5
+
+# ── Interface ─────────────────────────────────────────────────────────────────
+streamlit>=1.39,<1.40
+pandas>=2.2,<2.3        # pandas 2.3+ requiert NumPy 2.0
+pyarrow>=15.0,<16.0     # pyarrow 16+ requiert NumPy 2.0
+plotly>=5.24,<6

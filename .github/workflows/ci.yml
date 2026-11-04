@@ -1,0 +1,58 @@
+name: CI — Usine Autonome
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurer Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest==8.3.* pytest-cov ruff
+
+      - name: Vérification statique (ruff)
+        run: ruff check agents/ api/ app/ ui/ scripts/ --ignore E501
+
+      - name: Générer les données de simulation
+        run: python scripts/generate_data.py --jours 5
+
+      - name: Entraîner les modèles ML
+        run: python scripts/train_models.py
+
+      - name: Diagnostic système
+        run: python scripts/check_setup.py
+
+      - name: Tests unitaires et couverture
+        run: |
+          python -m pytest -q --cov=agents --cov=api --cov=app \
+            --cov-report=term-missing --cov-fail-under=70
+
+      - name: Test CLI — version
+        run: python -c "from app.cli import main; main(['--version'])" || true
+
+      - name: Test analyse synchrone
+        run: python -c "
+from app.orchestrator import Orchestrateur
+o = Orchestrateur()
+r = o.analyser_tous()
+print('Agents analysés :', list(r.keys()))
+assert len(r) == 6, 'Il doit y avoir exactement 6 agents'
+print('OK — 6 agents opérationnels')
+"
